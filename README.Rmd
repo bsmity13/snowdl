@@ -11,11 +11,17 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+
+# Use 'badger' to place badges
+library(badger)
 ```
 
 # snowdl
 
 <!-- badges: start -->
+`r badge_license("GPL-3")`
+`r badge_custom("repo status", "WIP", "yellow", "https://www.repostatus.org/#wip")`
+`r badge_devel("bsmity13/snowdl", "blue")`
 <!-- badges: end -->
 
 The goal of `snowdl` is to make it easy to download snow data (*e.g.*, snow depth, snow density, snow-water equivalent) from various sources (*e.g.*, SNODAS, Daymet).

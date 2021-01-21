@@ -5,6 +5,10 @@
 
 <!-- badges: start -->
 
+[![License:
+GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://cran.r-project.org/web/licenses/GPL-3)
+[![](https://img.shields.io/badge/repo%20status-WIP-yellow.svg)](https://www.repostatus.org/#wip)
+[![](https://img.shields.io/badge/devel%20version-0.1.0-blue.svg)](https://github.com/bsmity13/snowdl)
 <!-- badges: end -->
 
 The goal of `snowdl` is to make it easy to download snow data (*e.g.*,
