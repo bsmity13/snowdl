@@ -13,7 +13,8 @@ snow depth, snow density, snow-water equivalent) from various sources
 
 ## Installation
 
-Install the development version from [GitHub](https://github.com/) with:
+Install the development version from
+[GitHub](https://github.com/bsmity13/snowdl) with:
 
 ``` r
 # install.packages("devtools")
