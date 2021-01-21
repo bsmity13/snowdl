@@ -205,7 +205,8 @@ rasterize_SNODAS <- function(data_dir = "data",
     # Full filename
     ffn[i] <- file.path(out_dir, fn)
     raster::writeRaster(r, filename = ffn[i],
-                        format = format[1])
+                        format = format[1],
+                        overwrite = TRUE)
     # Delete
     if (rm_data) {
       # Folder containing data
