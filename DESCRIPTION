@@ -1,0 +1,21 @@
+Package: snowdl
+Type: Package
+Title: Download Various Sources of Snow Data
+Version: 0.1.0
+Authors@R:
+    person("Brian J.", "Smith", 
+    email = "bsmity13@gmail.com", role = c("aut", "cre"))
+Description: Allows downloading and processing of snow data (e.g.,
+    depth, density, snow-water equivalent) from various sources (e.g.,
+    Daymet, SNODAS).
+Encoding: UTF-8
+LazyData: true
+License: GPL-3
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
+Suggests: 
+    testthat
+Imports: 
+    utils,
+    raster,
+    R.utils
