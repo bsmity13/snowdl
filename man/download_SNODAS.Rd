@@ -25,7 +25,11 @@ this site: "ftp://sidads.colorado.edu/DATASETS/NOAA/G02158/masked/".
 This function is called by wrapper function \strong{TBD}.
 }
 \examples{
+
 \dontrun{
+
 download_SNODAS(as.Date("2020-02-02"), out_dir = tempdir())
+
 }
+
 }
