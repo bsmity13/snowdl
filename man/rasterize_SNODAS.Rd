@@ -28,6 +28,9 @@ raster?}
 
 \item{extent}{\verb{[Extent = NULL]} Optional. Extent for cropping SNODAS rasters.
 If \code{NULL} (default), no cropping occurs.}
+
+\item{verbose}{\verb{[logical = TRUE]} Determines whether the user will be
+notified of progress.}
 }
 \description{
 Saves as raster already untarred files in SNODAS directory
