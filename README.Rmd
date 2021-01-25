@@ -16,6 +16,30 @@ knitr::opts_chunk$set(
 library(badger)
 ```
 
+
+```{r, include = FALSE}
+# Data sources
+ERA5 <- data.frame(Dataset = "ERA5-Land Hourly",
+                   Source = "ECMWF",
+                   Link = "<a href = 'https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.e2161bac?tab=overview'>ERA5-Land</a>",
+                   Citation = "DOI: <a href = 'https://doi.org/10.24381/cds.e2161bac'>10.24381/cds.e2161bac</a>")
+
+SNODAS <- data.frame(Dataset = "SNODAS",
+                     Source = "NOAA",
+                     Link = "<a href = 'https://nsidc.org/data/g02158'>NSIDC</a>",
+                     Citation = "DOI: <a href = 'https://doi.org/10.7265/N5TB14TC'>10.7265/N5TB14TC</a>")
+
+Daymet <- data.frame(Dataset = "Daymet v4",
+                     Source = "NASA",
+                     Link = "<a href = 'https://daac.ornl.gov/DAYMET/guides/Daymet_Daily_V4.html'>ORNL DAAC</a>",
+                     Citation = "<a href = 'https://daymet.ornl.gov/files/Thornton_Daymet_V4_submitted_2021-01-20.pdf'>Thornton et al. 2020</a>")
+
+# Combine
+data_sources <- rbind(ERA5, SNODAS, Daymet)
+
+# Sort
+data_sources <- data_sources[order(data_sources$Dataset), ]
+```
 # snowdl
 
 <!-- badges: start -->
@@ -35,6 +59,12 @@ Install the development version from [GitHub](https://github.com/bsmity13/snowdl
 devtools::install_github("bsmity13/snowdl")
 ```
 This package is not yet operational. Check back soon for progress!
+
+## Available data sources
+
+*Sorted alphabetically by dataset name*
+
+`r knitr::kable(data_sources, row.names = FALSE, escape = TRUE)`
 
 ## All text below here default
   
