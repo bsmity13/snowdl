@@ -78,4 +78,29 @@ get_daymet_swe <- function(year,
 #                tile = c(12095, 12096),
 #                out_dir = "data")
 
+#' @export
+mosaic_daymet <- function(dir, out_dir = "."){
+  # Files
+  f <- list.files(dir, pattern = ".nc", full.names = TRUE)
+  # Basenames
+  bn <- basename(f)
+  # Get years
+  years <- unique(unlist(lapply(strsplit(bn, split = "_", fixed = TRUE),
+                  getElement, 2)))
+  # Mosaic each year
+  for (y in years){
+    # Files for that year
+    fy <- grep(y, f, value = TRUE)
+    # Load all
+    rl <- lapply(fy, raster::raster)
+    # Add mosaic arguments
+    rl$fun <- mean
+    rl$na.rm <- TRUE
+    # Mosaic
+    m <- do.call(raster::mosaic, rl)
+    # Save
+    raster::writeRaster(m, file.path(out_dir, paste0(y, "_swe.grd")))
+  }
 
+  return(file.path(out_dir, paste0(years, "_swe.grd")))
+}

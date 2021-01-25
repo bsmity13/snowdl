@@ -68,6 +68,14 @@ e_request <- function(variable = c("snow_density",
                       time = "12:00",
                       area = c(49, -125, 24.5, -66.5),
                       out_file) {
+
+  # Convert y/m/d/t to character
+  years <- as.character(years)
+  months <- as.character(months)
+  days <- as.character(days)
+  time = as.character(time)
+
+  # Construct request list
   request <- list(
     variable = variable,
     year = years,
@@ -79,6 +87,7 @@ e_request <- function(variable = c("snow_density",
     dataset_short_name = "reanalysis-era5-land",
     target = out_file
   )
+  # Return
   return(request)
 }
 

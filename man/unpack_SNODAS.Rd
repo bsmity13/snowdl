@@ -4,13 +4,13 @@
 \alias{unpack_SNODAS}
 \title{Unpack SNODAS tarballs}
 \usage{
-unpack_SNODAS(tar_dir = ".", new_dir = "data", rm_tar = TRUE)
+unpack_SNODAS(tar_dir = ".", out_dir = "data", rm_tar = TRUE)
 }
 \arguments{
 \item{tar_dir}{\verb{[character = "."]} The directory from which to unpack all
 SNODAS tarballs}
 
-\item{new_dir}{\verb{[character = "."]} The directory where outputs will be saved}
+\item{out_dir}{\verb{[character = "."]} The directory where outputs will be saved}
 
 \item{rm_tar}{\verb{[logical = TRUE]} Should tarball be deleted after unpacking?}
 }

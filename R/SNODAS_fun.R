@@ -69,7 +69,7 @@ download_SNODAS <- function(date, out_dir = ".", overwrite = FALSE) {
 #'
 #' @param tar_dir `[character = "."]` The directory from which to unpack all
 #' SNODAS tarballs
-#' @param new_dir `[character = "."]` The directory where outputs will be saved
+#' @param out_dir `[character = "."]` The directory where outputs will be saved
 #' @param rm_tar `[logical = TRUE]` Should tarball be deleted after unpacking?
 #'
 #' @details This function unpacks tarballs and returns SWE and snow depth files
@@ -87,26 +87,27 @@ download_SNODAS <- function(date, out_dir = ".", overwrite = FALSE) {
 #'
 #' }
 #' @export
-unpack_SNODAS <- function(tar_dir = ".", new_dir = "data", rm_tar = TRUE) {
+unpack_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
 
-  # Check if new_dir needs to be created
-  if (!dir.exists(new_dir)) {
-    dir.create(new_dir)
+  # Check if out_dir needs to be created
+  if (!dir.exists(out_dir)) {
+    dir.create(out_dir, recursive = TRUE)
   }
 
   # List SNODAS tarballs in directory
   tars <- list.files(tar_dir,
-                     pattern = utils::glob2rx("SNODAS*.tar"))
+                     pattern = utils::glob2rx("SNODAS*.tar"),
+                     full.names = TRUE)
 
   # Create directories for all unpacked tars
-  dirs <- file.path(new_dir, gsub(".tar", "", tars))
-  lapply(dirs, dir.create, showWarnings = FALSE)
+  dirs <- file.path(out_dir, gsub(".tar", "", basename(tars)))
+  lapply(dirs, dir.create, showWarnings = FALSE, recursive = TRUE)
 
   # Loop over tars and unpack
   for (i in 1:length(tars)) {
 
     # Unpacked directory
-    udir <- file.path(tar_dir, dirs[i])
+    udir <- dirs[i]
 
     #Un-tar
     utils::untar(tars[i], exdir = udir)
@@ -116,6 +117,7 @@ unpack_SNODAS <- function(tar_dir = ".", new_dir = "data", rm_tar = TRUE) {
       file.remove(tars[i])
     }
   }
+  return(dirs)
 }
 
 #' Rasterize SNODAS files
@@ -147,7 +149,7 @@ rasterize_SNODAS <- function(data_dir = "data",
 
   # Create out_dir if necessary
   if (!dir.exists(out_dir)) {
-    dir.create(out_dir)
+    dir.create(out_dir, recursive = TRUE)
   }
 
   if(verbose) {
