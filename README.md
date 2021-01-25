@@ -31,11 +31,11 @@ This package is not yet operational. Check back soon for progress\!
 
 *Sorted alphabetically by dataset name*
 
-| Dataset          | Source | Link                                                                                                            | Citation                                                                                                       |
-| :--------------- | :----- | :-------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| Daymet v4        | NASA   | <a href = 'https://daac.ornl.gov/DAYMET/guides/Daymet_Daily_V4.html'>ORNL DAAC</a>                              | <a href = 'https://daymet.ornl.gov/files/Thornton_Daymet_V4_submitted_2021-01-20.pdf'>Thornton et al. 2020</a> |
-| ERA5-Land Hourly | ECMWF  | <a href = 'https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.e2161bac?tab=overview'>ERA5-Land</a> | DOI: <a href = 'https://doi.org/10.24381/cds.e2161bac'>10.24381/cds.e2161bac</a>                               |
-| SNODAS           | NOAA   | <a href = 'https://nsidc.org/data/g02158'>NSIDC</a>                                                             | DOI: <a href = 'https://doi.org/10.7265/N5TB14TC'>10.7265/N5TB14TC</a>                                         |
+| Dataset          | Source | Link                                                                                                                                                      | Citation                                                                                                                                                 |
+| :--------------- | :----- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Daymet v4        | NASA   | <a href = 'https://daac.ornl.gov/DAYMET/guides/Daymet_Daily_V4.html' target='_blank' rel='noopener noreferrer'>ORNL DAAC</a>                              | <a href = 'https://daymet.ornl.gov/files/Thornton_Daymet_V4_submitted_2021-01-20.pdf' target='_blank' rel='noopener noreferrer'>Thornton et al. 2020</a> |
+| ERA5-Land Hourly | ECMWF  | <a href = 'https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.e2161bac?tab=overview' target='_blank' rel='noopener noreferrer'>ERA5-Land</a> | DOI: <a href = 'https://doi.org/10.24381/cds.e2161bac' target='_blank' rel='noopener noreferrer'>10.24381/cds.e2161bac</a>                               |
+| SNODAS           | NOAA   | <a href = 'https://nsidc.org/data/g02158' target='_blank' rel='noopener noreferrer'>NSIDC</a>                                                             | DOI: <a href = 'https://doi.org/10.7265/N5TB14TC' target='_blank' rel='noopener noreferrer'>10.7265/N5TB14TC</a>                                         |
 
 ## All text below here default
 
