@@ -37,39 +37,23 @@ This package is not yet operational. Check back soon for progress\!
 | ERA5-Land Hourly | ECMWF  | <a href = 'https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.e2161bac?tab=overview' target='_blank' rel='noopener noreferrer'>ERA5-Land</a> | DOI: <a href = 'https://doi.org/10.24381/cds.e2161bac' target='_blank' rel='noopener noreferrer'>10.24381/cds.e2161bac</a>                               |
 | SNODAS           | NOAA   | <a href = 'https://nsidc.org/data/g02158' target='_blank' rel='noopener noreferrer'>NSIDC</a>                                                             | DOI: <a href = 'https://doi.org/10.7265/N5TB14TC' target='_blank' rel='noopener noreferrer'>10.7265/N5TB14TC</a>                                         |
 
-## All text below here default
+## Important Notes
 
-<br/> <br/> <br/> <br/>
+  - Daymet is probably not a great source for SWE. Based on my reading,
+    they treat it more like a nuisance parameter than a quanity of
+    interest. See this link for their [Snow Water Equivalent
+    Clarification](https://daac.ornl.gov/DAYMET/guides/Daymet_V3_CFMosaics.html#qualityassess).
+    Note, this clarification was made in reference to V3, but still
+    applies based on newest literature for V4.
 
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(snowdl)
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub\!
+  - Further, Daymet has (apparently) different units for SWE than other
+    sources (but not really). Daymet uses kg/m^2, while other sources
+    use m (depth if snow was melted). To convert `snowdl` will offer the
+    option to multiply by area of the pixel (kg/m^2 \* m^2/1 = kg) to
+    get mass of water, convert to cubic meters (1 kg = 1 L H2O = 0.001
+    m^3), and then get depth by dividing by area (m^3/1 \* 1/m^2 = m).
+    Perhaps more useful to have units in mm, so again multiply by 0.001
+    m = 1 mm. - Note Daymet comes with lcc projection and units = m.
+    Resolution is 1000 x 1000, so area is 1e6 m^2. - Therefore,
+    conversion becomes `x * 1e6 * 0.001 * 0.001`. All conversions cancel
+    and resulting units are mm. - To be clear, km/m^2 = mm in this case.
