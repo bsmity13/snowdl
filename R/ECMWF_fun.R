@@ -33,7 +33,7 @@ e_key <- function(...){
 #' @param years `[character]` Years for which to download data.
 #' @param months `[character]` Months for which to download data.
 #' @param days `[character]` Days for which to download data.
-#' @param time `[character = "12:00"]` Hours for which to download data,
+#' @param time `[character = "06:00"]` Hours for which to download data,
 #' formatted as HH:MM. Hourly data are available for this dataset.
 #' @param area `[numeric]` Vector specifying bounding box of spatial
 #' subset to download. Should be in lat/lon, counter-clockwise from top.
@@ -65,7 +65,7 @@ e_request <- function(variable = c("snow_density",
                       years,
                       months,
                       days,
-                      time = "12:00",
+                      time = "06:00",
                       area = c(49, -125, 24.5, -66.5),
                       out_file) {
 
