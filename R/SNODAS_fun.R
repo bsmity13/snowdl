@@ -28,6 +28,11 @@
 #' @export
 download_SNODAS <- function(date, out_dir = ".", overwrite = FALSE) {
 
+  # Create out_dir if necessary
+  if (!dir.exists(out_dir)) {
+    dir.create(out_dir, recursive = TRUE)
+  }
+
   # Base URL
   base_url <- "ftp://sidads.colorado.edu/DATASETS/NOAA/G02158/masked/"
 
