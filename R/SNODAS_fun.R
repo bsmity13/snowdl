@@ -168,8 +168,12 @@ rasterize_SNODAS <- function(data_dir = "data",
                      recursive = TRUE)
   swe.dat.gz <- gsub(".txt.", ".dat.", swe.txt.gz, fixed = TRUE)
   # Unzip (returns unzipped filenames)
-  swe.txt <- unlist(lapply(swe.txt.gz, R.utils::gunzip))
-  swe.dat <- unlist(lapply(swe.dat.gz, R.utils::gunzip))
+  swe.txt <- unlist(lapply(swe.txt.gz,
+                           R.utils::gunzip,
+                           overwrite = TRUE))
+  swe.dat <- unlist(lapply(swe.dat.gz,
+                           R.utils::gunzip,
+                           overwrite = TRUE))
 
   # Get snow depth files in all directories
   dep.txt.gz <- list.files(data_dir,
@@ -178,8 +182,12 @@ rasterize_SNODAS <- function(data_dir = "data",
                            recursive = TRUE)
   dep.dat.gz <- gsub(".txt.", ".dat.", dep.txt.gz, fixed = TRUE)
   # Unzip (returns unzipped filenames)
-  dep.txt <- unlist(lapply(dep.txt.gz, R.utils::gunzip))
-  dep.dat <- unlist(lapply(dep.dat.gz, R.utils::gunzip))
+  dep.txt <- unlist(lapply(dep.txt.gz,
+                           R.utils::gunzip,
+                           overwrite = TRUE))
+  dep.dat <- unlist(lapply(dep.dat.gz,
+                           R.utils::gunzip,
+                           overwrite = TRUE))
 
   # Extract date string from filenames
   ds <- substr(x = basename(swe.txt), start = 28, stop = 35)
