@@ -9,7 +9,7 @@ e_request(
   years,
   months,
   days,
-  time = "12:00",
+  time = "06:00",
   area = c(49, -125, 24.5, -66.5),
   out_file
 )
@@ -24,7 +24,7 @@ e_request(
 
 \item{days}{\verb{[character]} Days for which to download data.}
 
-\item{time}{\verb{[character = "12:00"]} Hours for which to download data,
+\item{time}{\verb{[character = "06:00"]} Hours for which to download data,
 formatted as HH:MM. Hourly data are available for this dataset.}
 
 \item{area}{\verb{[numeric]} Vector specifying bounding box of spatial
