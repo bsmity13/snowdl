@@ -13,7 +13,7 @@ GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://cran.r-pro
 
 The goal of `snowdl` is to make it easy to download snow data (*e.g.*,
 snow depth, snow density, snow-water equivalent) from various sources
-(*e.g.*, SNODAS, Daymet).
+(see below).
 
 ## Installation
 
@@ -48,12 +48,27 @@ This package is not yet operational. Check back soon for progress\!
 
   - Further, Daymet has (apparently) different units for SWE than other
     sources (but not really). Daymet uses kg/m^2, while other sources
-    use m (depth if snow was melted). To convert `snowdl` will offer the
-    option to multiply by area of the pixel (kg/m^2 \* m^2/1 = kg) to
-    get mass of water, convert to cubic meters (1 kg = 1 L H2O = 0.001
-    m^3), and then get depth by dividing by area (m^3/1 \* 1/m^2 = m).
-    Perhaps more useful to have units in mm, so again multiply by 0.001
-    m = 1 mm. - Note Daymet comes with lcc projection and units = m.
-    Resolution is 1000 x 1000, so area is 1e6 m^2. - Therefore,
-    conversion becomes `x * 1e6 * 0.001 * 0.001`. All conversions cancel
-    and resulting units are mm. - To be clear, km/m^2 = mm in this case.
+    use m (depth if snow was melted). To convert, multiply by area of
+    the pixel (kg/m^2 \* m^2/1 = kg) to get mass of water, convert to
+    cubic meters (1 kg = 1 L H2O = 0.001 m^3), and then get depth by
+    dividing by area (m^3/1 \* 1/m^2 = m). Perhaps more useful to have
+    units in mm, so again multiply by 0.001 m = 1 mm.  
+    \* Note Daymet comes with lcc projection and units = m. Resolution
+    is 1000 x 1000, so area is 1e6 m^2.  
+    \* Therefore, conversion becomes `x * 1e6 * 0.001 * 0.001`. All
+    conversions cancel and resulting units are mm.  
+    \* To be clear, kg/m^2 = mm in this case.
+
+## Package Status/To-dos
+
+  - [x] Basic functionality
+      - [x] Download Daymet and process
+      - [x] Download ERA5 and process
+      - [x] Download SNODAS and process
+  - [ ] User-friendly wrappers
+      - [ ] Iterate over dates
+      - [ ] Complete entire workflow in `tempdir()`
+  - [ ] Other data sources?
+  - [ ] Vignettes
+      - [ ] Overview/Quickstart using wrapper functions
+      - [ ] In-depth using basic functionality
