@@ -44,7 +44,7 @@ get_daymet_swe <- function(year,
 
   # Check if out_dir needs to be created
   if (!dir.exists(out_dir)) {
-    dir.create(out_dir)
+    dir.create(out_dir, recursive = TRUE)
   }
 
   # Repeat year and tile so paste gets all combinations of year and tile
