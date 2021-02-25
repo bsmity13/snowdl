@@ -46,6 +46,7 @@ data_sources <- data_sources[order(data_sources$Dataset), ]
 `r badge_license("GPL-3")`
 `r badge_custom("repo status", "WIP", "yellow", "https://www.repostatus.org/#wip")`
 `r badge_devel("bsmity13/snowdl", "blue")`
+[![R-CMD-check](https://github.com/bsmity13/snowdl/workflows/R-CMD-check/badge.svg)](https://github.com/bsmity13/snowdl/actions)
 <!-- badges: end -->
 
 The goal of `snowdl` is to make it easy to download snow data (*e.g.*, snow depth, snow density, snow-water equivalent) from various sources (see below).

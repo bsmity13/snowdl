@@ -9,7 +9,9 @@ rasterize_SNODAS(
   out_dir = "data/geo",
   rm_data = TRUE,
   format = c("raster", "GTiff"),
-  extent = NULL,
+  crop = NULL,
+  reproject = NULL,
+  method = "ngb",
   verbose = TRUE
 )
 }
@@ -26,8 +28,17 @@ raster?}
 \item{format}{\verb{[character = "raster"]} Output format of raster. Either
 \code{"raster"} (.grd) or \code{"GTiff"} (.tif).}
 
-\item{extent}{\verb{[Extent = NULL]} Optional. Extent for cropping SNODAS rasters.
-If \code{NULL} (default), no cropping occurs.}
+\item{crop}{\verb{[Extent = NULL]} Optional. Extent for cropping Daymet rasters.
+If \code{NULL} (default), no cropping occurs. \code{reproject} takes priority over
+\code{crop} if both are specified.}
+
+\item{reproject}{\verb{[Raster* = NULL]} Optional. Raster for reprojecting Daymet
+rasters. If \code{NULL} (default), no reprojection occurs. \code{reproject} takes
+priority over \code{crop} if both are specified.}
+
+\item{method}{\verb{[character = "ngb"]} Method used to compute values if
+reprojecting raster. Either "ngb" or "bilinear". Ignored if \code{reproject} is
+\code{NULL}.}
 
 \item{verbose}{\verb{[logical = TRUE]} Determines whether the user will be
 notified of progress.}

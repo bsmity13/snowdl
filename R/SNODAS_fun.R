@@ -137,8 +137,15 @@ unpack_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
 #' raster?
 #' @param format `[character = "raster"]` Output format of raster. Either
 #' `"raster"` (.grd) or `"GTiff"` (.tif).
-#' @param extent `[Extent = NULL]` Optional. Extent for cropping SNODAS rasters.
-#' If `NULL` (default), no cropping occurs.
+#' @param crop `[Extent = NULL]` Optional. Extent for cropping Daymet rasters.
+#' If `NULL` (default), no cropping occurs. `reproject` takes priority over
+#' `crop` if both are specified.
+#' @param reproject `[Raster* = NULL]` Optional. Raster for reprojecting Daymet
+#' rasters. If `NULL` (default), no reprojection occurs. `reproject` takes
+#' priority over `crop` if both are specified.
+#' @param method `[character = "ngb"]` Method used to compute values if
+#' reprojecting raster. Either "ngb" or "bilinear". Ignored if `reproject` is
+#' `NULL`.
 #' @param verbose `[logical = TRUE]` Determines whether the user will be
 #' notified of progress.
 #'
@@ -149,7 +156,9 @@ rasterize_SNODAS <- function(data_dir = "data",
                              out_dir = "data/geo",
                              rm_data = TRUE,
                              format = c("raster", "GTiff"),
-                             extent = NULL,
+                             crop = NULL,
+                             reproject = NULL,
+                             method = "ngb",
                              verbose = TRUE) {
 
   # Create out_dir if necessary
@@ -157,7 +166,26 @@ rasterize_SNODAS <- function(data_dir = "data",
     dir.create(out_dir, recursive = TRUE)
   }
 
-  if(verbose) {
+  # Check `crop` and `reproject`
+  if (!is.null(crop)){
+    if (!(inherits(crop, "Raster") | inherits(crop, "Extent"))) {
+      stop("If 'crop' is not NULL, it must be of class 'Raster*' or 'Extent'.")
+    }
+  }
+
+  if (!is.null(reproject)){
+    if (!(inherits(reproject, "Raster"))) {
+      stop("If 'reproject' is not NULL, ",
+           "it must be of class 'Raster*'.")
+    }
+  }
+
+  # Check `method`
+  if (!(method %in% c("ngb", "bilinear"))){
+    stop("Argument 'method' must be either 'ngb' or 'bilinear'.")
+  }
+
+  if (verbose) {
     cat("Extracting *.gz files ... \n")
   }
 
@@ -168,12 +196,20 @@ rasterize_SNODAS <- function(data_dir = "data",
                      recursive = TRUE)
   swe.dat.gz <- gsub(".txt.", ".dat.", swe.txt.gz, fixed = TRUE)
   # Unzip (returns unzipped filenames)
-  swe.txt <- unlist(lapply(swe.txt.gz,
-                           R.utils::gunzip,
-                           overwrite = TRUE))
-  swe.dat <- unlist(lapply(swe.dat.gz,
-                           R.utils::gunzip,
-                           overwrite = TRUE))
+  swe.txt <- unlist(lapply(swe.txt.gz, function(x) {
+    R.utils::decompressFile.default(x,
+                                    ext = "gz",
+                                    FUN = gzfile,
+                                    overwrite = TRUE,
+                                    remove = FALSE)
+    }))
+  swe.dat <- unlist(lapply(swe.dat.gz, function(x) {
+    R.utils::decompressFile.default(x,
+                                    ext = "gz",
+                                    FUN = gzfile,
+                                    overwrite = TRUE,
+                                    remove = FALSE)
+  }))
 
   # Get snow depth files in all directories
   dep.txt.gz <- list.files(data_dir,
@@ -182,12 +218,20 @@ rasterize_SNODAS <- function(data_dir = "data",
                            recursive = TRUE)
   dep.dat.gz <- gsub(".txt.", ".dat.", dep.txt.gz, fixed = TRUE)
   # Unzip (returns unzipped filenames)
-  dep.txt <- unlist(lapply(dep.txt.gz,
-                           R.utils::gunzip,
-                           overwrite = TRUE))
-  dep.dat <- unlist(lapply(dep.dat.gz,
-                           R.utils::gunzip,
-                           overwrite = TRUE))
+  dep.txt <- unlist(lapply(dep.txt.gz, function(x) {
+    R.utils::decompressFile.default(x,
+                                    ext = "gz",
+                                    FUN = gzfile,
+                                    overwrite = TRUE,
+                                    remove = FALSE)
+  }))
+  dep.dat <- unlist(lapply(dep.dat.gz, function(x) {
+    R.utils::decompressFile.default(x,
+                                    ext = "gz",
+                                    FUN = gzfile,
+                                    overwrite = TRUE,
+                                    remove = FALSE)
+  }))
 
   # Extract date string from filenames
   ds <- substr(x = basename(swe.txt), start = 28, stop = 35)
@@ -208,9 +252,12 @@ rasterize_SNODAS <- function(data_dir = "data",
     r <- raster::stack(swe.txt[i], dep.txt[i])
     # Rename
     names(r) <- c("SWE", "depth")
-    # Crop
-    if (!is.null(extent)) {
-      r <- raster::crop(r, extent, snap = "out")
+    # Crop or reproject
+    if (!is.null(crop) | !is.null(reproject)) {
+      r <- crop_or_reproject(r = r,
+                             crop = crop,
+                             reproject = reproject,
+                             method = method)
     }
     # Write
     # Base filename

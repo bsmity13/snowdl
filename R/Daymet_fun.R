@@ -88,8 +88,15 @@ get_daymet_swe <- function(year,
 #' @param out_dir `[character = "data"]` Directory to save mosaicked output.
 #' @param format `[character = "raster"]` Output format of raster. Either
 #' `"raster"` (.grd) or `"GTiff"` (.tif).
-#' @param extent `[Extent = NULL]` Optional. Extent for cropping SNODAS rasters.
-#' If `NULL` (default), no cropping occurs.
+#' @param crop `[Extent = NULL]` Optional. Extent for cropping Daymet rasters.
+#' If `NULL` (default), no cropping occurs. `reproject` takes priority over
+#' `crop` if both are specified.
+#' @param reproject `[Raster* = NULL]` Optional. Raster for reprojecting Daymet
+#' rasters. If `NULL` (default), no reprojection occurs. `reproject` takes
+#' priority over `crop` if both are specified.
+#' @param method `[character = "ngb"]` Method used to compute values if
+#' reprojecting raster. Either "ngb" or "bilinear". Ignored if `reproject` is
+#' `NULL`.
 #' @param verbose `[logical = TRUE]` Determines whether the user will be
 #' notified of progress.
 #'
@@ -109,12 +116,33 @@ mosaic_daymet <- function(dir,
                           days = 1:365,
                           out_dir = ".",
                           format = c("raster", "GTiff"),
-                          extent = NULL,
+                          crop = NULL,
+                          reproject = NULL,
+                          method = "ngb",
                           verbose = TRUE){
 
   # Check if out_dir needs to be created
   if (!dir.exists(out_dir)) {
     dir.create(out_dir, recursive = TRUE)
+  }
+
+  # Check `crop` and `reproject`
+  if (!is.null(crop)){
+    if (!(inherits(crop, "Raster") | inherits(crop, "Extent"))) {
+      stop("If 'crop' is not NULL, it must be of class 'Raster*' or 'Extent'.")
+    }
+  }
+
+  if (!is.null(reproject)){
+    if (!(inherits(reproject, "Raster"))) {
+      stop("If 'reproject' is not NULL, ",
+      "it must be of class 'Raster*'.")
+    }
+  }
+
+  # Check `method`
+  if (!(method %in% c("ngb", "bilinear"))){
+    stop("Argument 'method' must be either 'ngb' or 'bilinear'.")
   }
 
   # Files
@@ -148,8 +176,11 @@ mosaic_daymet <- function(dir,
       # Mosaic
       m <- do.call(raster::mosaic, rl)
       # Crop or reproject
-      if (!is.null(extent)) {
-        r <- raster::crop(m, extent, snap = "out")
+      if (!is.null(crop) | !is.null(reproject)) {
+        m <- crop_or_reproject(r = m,
+                               crop = crop,
+                               reproject = reproject,
+                               method = method)
       }
       # Pad day with 0s for filename
       day <- formatC(d, width = 3, format = "d", flag = "0")
