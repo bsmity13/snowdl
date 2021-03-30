@@ -19,4 +19,5 @@ Imports:
     utils,
     raster,
     R.utils,
-    ecmwfr
+    ecmwfr,
+    xfun

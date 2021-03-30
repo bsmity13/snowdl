@@ -245,6 +245,24 @@ rasterize_SNODAS <- function(data_dir = "data",
 
   # Loop through each date, load SWE and depth rasters, (crop), write, (delete)
   for (i in 1:length(ds)) {
+    # Note: there is an apparent bug in these files from
+    # 2017-03-23 to 2017-04-03 where the header file has
+    # an incorrect version and GDAL will not recognize it.
+    problem_ds <- seq.Date(as.Date("2017-03-23"),
+                           as.Date("2017-04-03"),
+                           by = "1 day")
+    if (as.Date(ds[i], format = "%Y%m%d") %in% problem_ds) {
+      # Fix swe
+      xfun::gsub_file(file = swe.txt[i],
+                pattern = "NOHRSC GIS/RS raster file v1.0",
+                replacement = "NOHRSC GIS/RS raster file v1.1",
+                fixed = TRUE)
+      # Fix depth
+      xfun::gsub_file(file = dep.txt[i],
+                pattern = "NOHRSC GIS/RS raster file v1.0",
+                replacement = "NOHRSC GIS/RS raster file v1.1",
+                fixed = TRUE)
+    }
     if (verbose) {
       cat("    ", as.character(as.Date(ds[i], format = "%Y%m%d")), "\n")
     }
