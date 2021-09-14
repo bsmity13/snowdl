@@ -47,5 +47,11 @@ notified of progress.}
 Saves as raster already untarred files in SNODAS directory
 }
 \details{
-Blah blah. \strong{TBD}
+Note that if this function exits with an error, it will most
+likely have already untarred the compressed files that were downloaded.
+That will typically cause the function \code{rasterize_SNODAS()} to fail when
+run a second time. This is not a desirable outcome, and it is on my to-do
+list to fix this.
+
+More details required. \strong{TBD}
 }

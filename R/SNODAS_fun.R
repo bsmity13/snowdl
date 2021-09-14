@@ -149,7 +149,13 @@ unpack_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
 #' @param verbose `[logical = TRUE]` Determines whether the user will be
 #' notified of progress.
 #'
-#' @details Blah blah. **TBD**
+#' @details Note that if this function exits with an error, it will most
+#' likely have already untarred the compressed files that were downloaded.
+#' That will typically cause the function `rasterize_SNODAS()` to fail when
+#' run a second time. This is not a desirable outcome, and it is on my to-do
+#' list to fix this.
+#'
+#' More details required. **TBD**
 #'
 #' @export
 rasterize_SNODAS <- function(data_dir = "data",
@@ -181,8 +187,13 @@ rasterize_SNODAS <- function(data_dir = "data",
   }
 
   # Check `method`
-  if (!(method %in% c("ngb", "bilinear"))){
+  if (!(method %in% c("ngb", "bilinear"))) {
     stop("Argument 'method' must be either 'ngb' or 'bilinear'.")
+  }
+
+  # Check file type
+  if (!(format %in% c("raster", "GTiff"))) {
+    stop("Argument 'format' must be either 'raster' or 'GTiff'.")
   }
 
   if (verbose) {
