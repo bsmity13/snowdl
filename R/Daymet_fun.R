@@ -53,7 +53,7 @@ get_daymet_swe <- function(year,
 
   # Create data URL
   durl <- paste0("https://thredds.daac.ornl.gov/",
-                 "thredds/fileServer/ornldaac/1328/tiles/",
+                 "thredds/fileServer/ornldaac/1840/tiles/",
                  years, "/", tiles, "_", years, "/swe.nc")
 
   # Create output filename
