@@ -3,7 +3,7 @@
 #
 # `snowdl` needs a consistent format for dates that can be accessed by each
 # set of functions to efficiently download and handle the range of dates a
-# uswer may request.
+# user may request.
 #
 # Here, I am using S3 classes and data.frames to store the desired dates.
 
