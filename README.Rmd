@@ -69,7 +69,7 @@ This package is not yet operational. Check back soon for progress!
 
 ## Important Notes
 
-  *   Daymet is probably not a great source for SWE. Based on my reading, they treat it more like a nuisance parameter than a quanity of interest. See this link for their [Snow Water Equivalent Clarification](https://daac.ornl.gov/DAYMET/guides/Daymet_V3_CFMosaics.html#qualityassess). Note, this clarification was made in reference to V3, but still applies based on newest literature for V4.
+  *   Daymet is probably not a great source for SWE. Based on my reading, they treat it more like a nuisance parameter than a quantity of interest. See this link for their [Snow Water Equivalent Clarification](https://daac.ornl.gov/DAYMET/guides/Daymet_V3_CFMosaics.html#qualityassess). Note, this clarification was made in reference to V3, but still applies based on newest literature for V4.
   
   *   Further, Daymet has (apparently) different units for SWE than other sources (but not really). Daymet uses kg/m^2, while other sources use m (depth if snow was melted). To convert, multiply by area of the pixel (kg/m^2 * m^2/1 = kg) to get mass of water, convert to cubic meters (1 kg = 1 L H2O = 0.001 m^3), and then get depth by dividing by area (m^3/1 * 1/m^2 = m). Perhaps more useful to have units in mm, so again multiply by 0.001 m = 1 mm.  
     *  Note Daymet comes with lcc projection and units = m. Resolution is 1000 x 1000, so area is 1e6 m^2.  

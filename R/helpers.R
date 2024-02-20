@@ -25,3 +25,25 @@ crop_or_reproject <- function(r, crop, reproject, method){
 
   return(res)
 }
+
+#' Return day-of-year for a date
+#'
+#' Internal function that calculates day-of-year for a date
+#'
+#' @details Meant for internal use.
+#'
+doy <- function(d) {
+  j <- format(d, "%j")
+  return(as.numeric(j))
+}
+
+#' Return year for a date
+#'
+#' Internal function that calculates year for a date
+#'
+#' @details Meant for internal use.
+#'
+yr <- function(d) {
+  y <- format(d, "%Y")
+  return(as.numeric(y))
+}
