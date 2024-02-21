@@ -1,19 +1,96 @@
 # Functions for downloading SNODAS data
 
-# Function to download data for one date ----
+# Process SNODAS dates ----
+#' Process `snowdl_dates` for SNODAS
+#'
+#' Process `snowdl_dates` object for use with SNODAS
+#'
+#' @param dates `[snowdl_dates]` The object that defines the dates for which to
+#' download data. See ?snowdl_dates.
+#' @param masked `[logical = TRUE]` Determines whether the downloaded data will
+#' be masked or unmasked. See details.
+#'
+#' @details TBD
+#'
+#' @examples
+#'
+#' \dontrun{
+#'
+#' dd <- snowdates_ydoy(2008:2010, 1:3, all_combos = TRUE)
+#' dates_SNODAS(dd, masked = TRUE)
+#' dates_SNODAS(dd, masked = FALSE)
+#'
+#' }
+#'
+#' @export
+dates_SNODAS <- function(dates, masked = TRUE) {
+  if (!is.snowdl_dates(dates)) {
+    stop("Argument 'dates' must be of class 'snowdl_dates'. See ?as_snowdl_dates.")
+  }
+
+  # Grab date components
+  y <- dates$year
+  m <- format(dates$date, "%m")
+  mon <- format(dates$date, "%b")
+  d <- format(dates$date, "%d")
+
+  # URL and availability depend on 'masked'
+  if (masked) {
+    # Base URL
+    base_url <- "https://noaadata.apps.nsidc.org/NOAA/G02158/masked/"
+
+    # Filename
+    fn <- paste0("SNODAS_", y, m, d, ".tar")
+
+    # Check dates (masked available starting 2003-09-30)
+    dates$available <- dates$date >= as.Date("2003-09-30")
+  } else {
+    # Base URL
+    base_url <- "https://noaadata.apps.nsidc.org/NOAA/G02158/unmasked/"
+
+    # Filename
+    fn <- paste0("SNODAS_unmasked_", y, m, d, ".tar")
+
+    # Check dates (unmasked available starting 2009-12-09)
+    dates$available <- dates$date >= as.Date("2009-12-09")
+  }
+
+
+  # Construct URL
+  dates$url <- paste0(base_url, y, "/", m, "_", mon, "/", fn)
+  # Overwrite if data are unavailable
+  dates$url[dates$available == FALSE] <- NA
+
+  # Set class
+  class(dates) <- c("SNODAS_dates", class(dates))
+
+  # Return
+  return(dates)
+}
+
+# Function to download data ----
 
 #' Download SNODAS
 #'
-#' Downloads SNODAS data for a single date
+#' Downloads SNODAS data for dates in a `snowdl_dates` object
 #'
-#' @param date `[date, POSIXt]` The (1) date for which to download data.
+#' @param date `[SNODAS_dates]` The object that defines the dates for which to
+#' download data. See ?dates_SNODAS.
 #' @param out_dir `[character = "."]` The directory in which to save downloaded
 #' file.
-#' @param overwrite `[logical = FALSE]` If data for `date` exists in `out_dir`,
-#' should it be overwritten?
+#' @param overwrite `[logical = FALSE]` If data for particular dates exist in
+#' `out_dir`, should it be overwritten?
+#' @param masked `[logical = TRUE]` Determines whether the downloaded data will
+#' be masked or unmasked. See details.
 #'
-#' @details This function downloads SNODAS data over FTP from
-#' this site: "ftp://sidads.colorado.edu/DATASETS/NOAA/G02158/masked/".
+#' @details This function downloads SNODAS data over HTTP from
+#' this site: "https://noaadata.apps.nsidc.org/NOAA/G02158/".
+#'
+#' On the argument `masked`: SNODAS makes predictions slightly outside of the
+#' contiguous United States (unmasked), but crops the predictions to the
+#' contiguous US (masked). Note that while masked rasters are available
+#' beginning September 2003, unmasked rasters are only available beginning
+#' in December 2009.
 #'
 #' This function is called by wrapper function **TBD**.
 #'
@@ -21,54 +98,77 @@
 #'
 #' \dontrun{
 #'
-#' download_SNODAS(as.Date("2020-02-02"), out_dir = tempdir())
+#' # Just two dates
+#' dts <- as_snowdl_dates(as.Date("2020-02-02") + 1:2)
+#'
+#' # Process dates
+#' SNODAS_dts <- dates_SNODAS(dts)
+#'
+#' # Download to temporary directory
+#' res <- download_SNODAS(SNODAS_dts, out_dir = tempdir())
+#'
+#' # Include a date that's unavailable
+#' dt2 <- as_snowdl_dates(as.Date(c("2001-02-02", "2010-02-02")))
+#' SNODAS_dt2 <- dates_SNODAS(dt2)
+#' res2 <- download_SNODAS(SNODAS_dt2, out_dir = tempdir())
 #'
 #' }
 #'
 #' @export
-download_SNODAS <- function(date, out_dir = ".", overwrite = FALSE) {
+download_SNODAS <- function(dates, out_dir = ".", overwrite = FALSE) {
+
+  # Check that 'dates' is correct class
+  if(!is(dates, "SNODAS_dates")) {
+    stop("'dates' must be processed with 'dates_SNODAS()'.")
+  }
 
   # Create out_dir if necessary
   if (!dir.exists(out_dir)) {
     dir.create(out_dir, recursive = TRUE)
   }
 
-  # Base URL
-  base_url <- "ftp://sidads.colorado.edu/DATASETS/NOAA/G02158/masked/"
-
-  # Grab date components
-  y <- format(date, "%Y")
-  m <- format(date, "%m")
-  mon <- format(date, "%b")
-  d <- format(date, "%d")
-
-  # Filename
-  fn <- paste0("SNODAS_", y, m, d, ".tar")
+  # Get filename from url
+  fn <- sapply(strsplit(dates$url, "/", fixed = TRUE), function(x) {
+    if (length(x) == 1) {
+      return(NA)
+    } else {
+      return(x[[9]])
+    }
+  })
 
   # Output file
-  of <- file.path(out_dir, fn)
+  dates$download <- ifelse(is.na(fn), NA, file.path(out_dir, fn))
 
-  # If file doesn't exist or should be overwritten
-  if(!file.exists(of) | overwrite){
-    # Construct URL
-    u <- paste0(base_url, y, "/", m, "_", mon, "/", fn)
+  # Download
+  dates$status <- NA
 
-    # Download
-    try(utils::download.file(url = u,
-                  destfile = of,
-                  mode = "wb"))
-  } else {
-    warning("Did not download file ", fn)
+  for (i in 1:nrow(dates)) {
+    if (!is.na(dates$url[i])) {
+      # Is there a file that shouldn't be overwritten?
+      if(file.exists(dates$download[i]) & !overwrite) {
+        dates$status[i] <- "exists"
+      } else { # The file doesn't exist or should be overwritten
+        # Download
+        try(res <- utils::download.file(url = dates$url[i],
+                                        destfile = dates$download[i],
+                                        mode = "wb"))
+        dates$status[i] <- ifelse(res == 0, "success", "fail")
+      }
+    } else { # The data are unavailable
+
+    }
   }
 
-  # No return (called for side-effect = download file)
+  # Set class
+  class(dates) <- c("SNODAS_download", class(dates))
 
+  return(dates)
 }
 
 
 # Function to unpack SNODAS tarballs ----
 
-#' Unpack SNODAS tarballs
+#' Unpack all SNODAS tarballs
 #'
 #' Unpacks all SNODAS tarballs in a directory
 #'
@@ -85,14 +185,22 @@ download_SNODAS <- function(date, out_dir = ".", overwrite = FALSE) {
 #' @examples
 #' \dontrun{
 #'
-#' dd <- tempdir()
+#' # Just two dates
+#' dts <- as_snowdl_dates(as.Date("2020-02-02") + 1:2)
 #'
-#' download_SNODAS(as.Date("2020-02-02"), out_dir = dd)
-#' unpack_SNODAS(dd)
+#' # Process dates
+#' SNODAS_dts <- dates_SNODAS(dts)
+#'
+#' # Download to temporary directory
+#' dd <- tempdir()
+#' res <- download_SNODAS(SNODAS_dts, out_dir = dd)
+#'
+#' # Unpack
+#' unpack_dir_SNODAS(dd)
 #'
 #' }
 #' @export
-unpack_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
+unpack_dir_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
 
   # Check if out_dir needs to be created
   if (!dir.exists(out_dir)) {
@@ -202,9 +310,9 @@ rasterize_SNODAS <- function(data_dir = "data",
 
   # Get SWE files in all directories
   swe.txt.gz <- list.files(data_dir,
-                     pattern = utils::glob2rx('*ssmv11034tS*.txt.gz'),
-                     full.names = TRUE,
-                     recursive = TRUE)
+                           pattern = utils::glob2rx('*ssmv11034tS*.txt.gz'),
+                           full.names = TRUE,
+                           recursive = TRUE)
   swe.dat.gz <- gsub(".txt.", ".dat.", swe.txt.gz, fixed = TRUE)
   # Unzip (returns unzipped filenames)
   swe.txt <- unlist(lapply(swe.txt.gz, function(x) {
@@ -213,7 +321,7 @@ rasterize_SNODAS <- function(data_dir = "data",
                                     FUN = gzfile,
                                     overwrite = TRUE,
                                     remove = FALSE)
-    }))
+  }))
   swe.dat <- unlist(lapply(swe.dat.gz, function(x) {
     R.utils::decompressFile.default(x,
                                     ext = "gz",
@@ -265,14 +373,14 @@ rasterize_SNODAS <- function(data_dir = "data",
     if (as.Date(ds[i], format = "%Y%m%d") %in% problem_ds) {
       # Fix swe
       xfun::gsub_file(file = swe.txt[i],
-                pattern = "NOHRSC GIS/RS raster file v1.0",
-                replacement = "NOHRSC GIS/RS raster file v1.1",
-                fixed = TRUE)
+                      pattern = "NOHRSC GIS/RS raster file v1.0",
+                      replacement = "NOHRSC GIS/RS raster file v1.1",
+                      fixed = TRUE)
       # Fix depth
       xfun::gsub_file(file = dep.txt[i],
-                pattern = "NOHRSC GIS/RS raster file v1.0",
-                replacement = "NOHRSC GIS/RS raster file v1.1",
-                fixed = TRUE)
+                      pattern = "NOHRSC GIS/RS raster file v1.0",
+                      replacement = "NOHRSC GIS/RS raster file v1.1",
+                      fixed = TRUE)
     }
     if (verbose) {
       cat("    ", as.character(as.Date(ds[i], format = "%Y%m%d")), "\n")

@@ -38,7 +38,8 @@ plot.snowdl_dates <- function(x, y, ...) {
 #'
 #' @param x `[Date]` The vector of dates for which to download data.
 #'
-#' @details This function assumes you want every date from start to end.
+#' @details This coerces a user-specified vector of dates to a `snowdl_dates`
+#' `data.frame`. For more options, see
 #'
 #' @examples
 #'
@@ -86,12 +87,12 @@ as_snowdl_dates <- function(x) {
 #'
 #' \dontrun{
 #'
-#' snowdate_seq(as.Date("2020-01-01"), as.Date("2020-01-15"))
+#' snowdates_seq(as.Date("2020-01-01"), as.Date("2020-01-15"))
 #'
 #' }
 #'
 #' @export
-snowdate_seq <- function(start, end) {
+snowdates_seq <- function(start, end) {
   # Check that 'start' and 'end' are 'Date' objects
   if (!(is(start, "Date") & is(end, "Date"))) {
     stop("Both 'start' and 'end' should be formatted as 'Date' objects")
@@ -133,15 +134,15 @@ snowdate_seq <- function(start, end) {
 #' \dontrun{
 #'
 #' # All combinations of year and day-of-year
-#' snowdate_ydoy(y = 2020:2021, doy = 1:6, all_combos = TRUE)
+#' snowdates_ydoy(y = 2020:2021, doy = 1:6, all_combos = TRUE)
 #'
 #' # Match vectors year and day-of-year (with recycling)
-#' snowdate_ydoy(y = 2020:2021, doy = 1:6, all_combos = FALSE)
+#' snowdates_ydoy(y = 2020:2021, doy = 1:6, all_combos = FALSE)
 #'
 #' }
 #'
 #' @export
-snowdate_ydoy <- function(y, doy, all_combos = TRUE) {
+snowdates_ydoy <- function(y, doy, all_combos = TRUE) {
   # Handle combos
   if (all_combos) {
     df <- expand.grid(date = NA, year = y, doy = doy)
@@ -150,7 +151,7 @@ snowdate_ydoy <- function(y, doy, all_combos = TRUE) {
   }
 
   # Assign date
-  df$date <- strptime(paste(df$y, df$doy, sep = "-"), format = "%Y-%j")
+  df$date <- as.Date(strptime(paste(df$y, df$doy, sep = "-"), format = "%Y-%j"))
 
   # Sort
   df <- df[order(df$date), ]
