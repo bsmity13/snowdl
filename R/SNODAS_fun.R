@@ -10,7 +10,17 @@
 #' @param masked `[logical = TRUE]` Determines whether the downloaded data will
 #' be masked or unmasked. See details.
 #'
-#' @details TBD
+#' @details This function determines URLs to download SNODAS data over HTTP from
+#' this site: "https://noaadata.apps.nsidc.org/NOAA/G02158/".
+#'
+#' On the argument `masked`: SNODAS makes predictions slightly outside of the
+#' contiguous United States (unmasked), but crops the predictions to the
+#' contiguous US (masked). Note that while masked rasters are available
+#' beginning September 2003, unmasked rasters are only available beginning
+#' in December 2009.
+#'
+#' @returns An object of class `SNODAS_dates` to be passed to
+#' `download_SNODAS()`.
 #'
 #' @examples
 #'
@@ -86,13 +96,8 @@ dates_SNODAS <- function(dates, masked = TRUE) {
 #' @details This function downloads SNODAS data over HTTP from
 #' this site: "https://noaadata.apps.nsidc.org/NOAA/G02158/".
 #'
-#' On the argument `masked`: SNODAS makes predictions slightly outside of the
-#' contiguous United States (unmasked), but crops the predictions to the
-#' contiguous US (masked). Note that while masked rasters are available
-#' beginning September 2003, unmasked rasters are only available beginning
-#' in December 2009.
-#'
-#' This function is called by wrapper function **TBD**.
+#' @returns An object of class `SNODAS_download` to be passed to
+#' `unpack_SNODAS()`.
 #'
 #' @examples
 #'
@@ -166,8 +171,7 @@ download_SNODAS <- function(dates, out_dir = ".", overwrite = FALSE) {
 }
 
 
-# Function to unpack SNODAS tarballs ----
-
+# Unpack all SNODAS tarballs (old workflow) ----
 #' Unpack all SNODAS tarballs
 #'
 #' Unpacks all SNODAS tarballs in a directory
@@ -175,12 +179,15 @@ download_SNODAS <- function(dates, out_dir = ".", overwrite = FALSE) {
 #' @param tar_dir `[character = "."]` The directory from which to unpack all
 #' SNODAS tarballs
 #' @param out_dir `[character = "."]` The directory where outputs will be saved
-#' @param rm_tar `[logical = TRUE]` Should tarball be deleted after unpacking?
+#' @param rm_tar `[logical = FALSE]` Should tarballs be deleted after unpacking?
 #'
 #' @details This function unpacks tarballs and returns SWE and snow depth files
 #' with new names in a user-defined directory.
 #'
-#' Will probably end up getting called by a wrappper. **TBD**
+#' This is a remnant of the previous (v0.1.0) workflow that takes just a
+#' directory as an input. It remains available for convenience, but the
+#' current (v1.0.0) workflow tracks the files in a custom `data.frame` and
+#' users should use the function TBD.
 #'
 #' @examples
 #' \dontrun{
@@ -200,7 +207,7 @@ download_SNODAS <- function(dates, out_dir = ".", overwrite = FALSE) {
 #'
 #' }
 #' @export
-unpack_dir_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
+unpack_dir_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = FALSE) {
 
   # Check if out_dir needs to be created
   if (!dir.exists(out_dir)) {
@@ -211,6 +218,11 @@ unpack_dir_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
   tars <- list.files(tar_dir,
                      pattern = utils::glob2rx("SNODAS*.tar"),
                      full.names = TRUE)
+
+  # If there are no tarballs here
+  if (length(tars) == 0) {
+    stop("There are no SNODAS tarballs in 'tar_dir'.")
+  }
 
   # Create directories for all unpacked tars
   dirs <- file.path(out_dir, gsub(".tar", "", basename(tars)))
@@ -233,6 +245,90 @@ unpack_dir_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = TRUE) {
   return(dirs)
 }
 
+# Unpack SNODAS tarballs (new workflow) ----
+#' Unpack SNODAS tarballs
+#'
+#' Unpacks SNODAS tarballs from a `SNODAS_download` object
+#'
+#' @param dates `[SNODAS_download]` The object returned by `download_SNODAS()`
+#' @param out_dir `[character = "."]` The directory where outputs will be saved
+#' @param rm_tar `[logical = FALSE]` Should tarballs be deleted after unpacking?
+#'
+#' @details This function unpacks tarballs and returns SWE and snow depth files
+#' with new names in a user-defined directory.
+#'
+#' This is the preferred unpacking function for v1.0.0.
+#'
+#' @seealso [unpack_dir_SNODAS()] for an older approach (v0.1.0) that unpacks
+#' all tarballs in a directory without a `SNODAS_download` object.
+#'
+#' @examples
+#' \dontrun{
+#'
+#' # Three dates; one is unavailable
+#' dts <- as_snowdl_dates(as.Date(c("2000-02-02", "2010-02-02", "2020-02-02")))
+#'
+#' # Process dates
+#' SNODAS_dts <- dates_SNODAS(dts)
+#'
+#' # Download to temporary directory
+#' dd <- tempdir()
+#' dl <- download_SNODAS(SNODAS_dts, out_dir = dd)
+#'
+#' # Unpack
+#' res <- unpack_SNODAS(dl, out_dir = dd)
+#'
+#' }
+#' @export
+unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
+
+  # Check that 'dates' object is correct class
+  if (!is(dates, "SNODAS_download")) {
+    stop("An object of class 'SNODAS_download' ",
+         "must be passed to argument 'dates'. See ?download_SNODAS.")
+  }
+
+  # Check if out_dir needs to be created
+  if (!dir.exists(out_dir)) {
+    dir.create(out_dir, recursive = TRUE)
+  }
+
+  # Create directories for all unpacked tars
+  dates$unpacked <- file.path(out_dir, gsub(".tar", "",
+                                            basename(dates$download)))
+  dates$unpacked[which(!dates$available)] <- NA
+  lapply(na.omit(dates$unpacked), dir.create,
+         showWarnings = FALSE, recursive = TRUE)
+
+  # Loop over successfully downloaded tars and unpack
+  for (i in which(dates$status %in% c("success", "unpacked_available"))) {
+
+    # Tarball and unpacking directory
+    tar <- dates$download[i]
+    udir <- dates$unpacked[i]
+
+    #Un-tar
+    utils::untar(tar, exdir = udir)
+
+    # Possibly remove tarball
+    if (rm_tar) {
+      file.remove(tar)
+      # If we remove the tarball, we want the function to know in the future
+      # not to try to unpack it.
+      dates$status[i] <- "unpacked_removed"
+    } else {
+      dates$status[i] <- "unpacked_available"
+    }
+  }
+
+  # Change class of 'dates'
+  class(dates) <- c("SNODAS_unpacked", class(dates))
+
+  return(dates)
+}
+
+
+# Rasterize SNODAS files ----
 #' Rasterize SNODAS files
 #'
 #' Saves as raster already untarred files in SNODAS directory

@@ -4,31 +4,49 @@
 \alias{download_SNODAS}
 \title{Download SNODAS}
 \usage{
-download_SNODAS(date, out_dir = ".", overwrite = FALSE)
+download_SNODAS(dates, out_dir = ".", overwrite = FALSE)
 }
 \arguments{
-\item{date}{\verb{[date, POSIXt]} The (1) date for which to download data.}
-
 \item{out_dir}{\verb{[character = "."]} The directory in which to save downloaded
 file.}
 
-\item{overwrite}{\verb{[logical = FALSE]} If data for \code{date} exists in \code{out_dir},
-should it be overwritten?}
+\item{overwrite}{\verb{[logical = FALSE]} If data for particular dates exist in
+\code{out_dir}, should it be overwritten?}
+
+\item{date}{\verb{[SNODAS_dates]} The object that defines the dates for which to
+download data. See ?dates_SNODAS.}
+
+\item{masked}{\verb{[logical = TRUE]} Determines whether the downloaded data will
+be masked or unmasked. See details.}
+}
+\value{
+An object of class \code{SNODAS_download} to be passed to
+\code{unpack_SNODAS()}.
 }
 \description{
-Downloads SNODAS data for a single date
+Downloads SNODAS data for dates in a \code{snowdl_dates} object
 }
 \details{
-This function downloads SNODAS data over FTP from
-this site: "ftp://sidads.colorado.edu/DATASETS/NOAA/G02158/masked/".
-
-This function is called by wrapper function \strong{TBD}.
+This function downloads SNODAS data over HTTP from
+this site: "https://noaadata.apps.nsidc.org/NOAA/G02158/".
 }
 \examples{
 
 \dontrun{
 
-download_SNODAS(as.Date("2020-02-02"), out_dir = tempdir())
+# Just two dates
+dts <- as_snowdl_dates(as.Date("2020-02-02") + 1:2)
+
+# Process dates
+SNODAS_dts <- dates_SNODAS(dts)
+
+# Download to temporary directory
+res <- download_SNODAS(SNODAS_dts, out_dir = tempdir())
+
+# Include a date that's unavailable
+dt2 <- as_snowdl_dates(as.Date(c("2001-02-02", "2010-02-02")))
+SNODAS_dt2 <- dates_SNODAS(dt2)
+res2 <- download_SNODAS(SNODAS_dt2, out_dir = tempdir())
 
 }
 

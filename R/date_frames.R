@@ -24,6 +24,7 @@ is.snowdl_dates <- function(x) {
 }
 
 # Plot
+#' @export
 plot.snowdl_dates <- function(x, y, ...) {
   plot(x = x$doy, y = x$year,
        pch = 16,
