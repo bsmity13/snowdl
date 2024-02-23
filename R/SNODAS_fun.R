@@ -84,14 +84,12 @@ dates_SNODAS <- function(dates, masked = TRUE) {
 #'
 #' Downloads SNODAS data for dates in a `snowdl_dates` object
 #'
-#' @param date `[SNODAS_dates]` The object that defines the dates for which to
+#' @param dates `[SNODAS_dates]` The object that defines the dates for which to
 #' download data. See ?dates_SNODAS.
 #' @param out_dir `[character = "."]` The directory in which to save downloaded
 #' file.
 #' @param overwrite `[logical = FALSE]` If data for particular dates exist in
 #' `out_dir`, should it be overwritten?
-#' @param masked `[logical = TRUE]` Determines whether the downloaded data will
-#' be masked or unmasked. See details.
 #'
 #' @details This function downloads SNODAS data over HTTP from
 #' this site: "https://noaadata.apps.nsidc.org/NOAA/G02158/".
@@ -123,7 +121,7 @@ dates_SNODAS <- function(dates, masked = TRUE) {
 download_SNODAS <- function(dates, out_dir = ".", overwrite = FALSE) {
 
   # Check that 'dates' is correct class
-  if(!is(dates, "SNODAS_dates")) {
+  if(!methods::is(dates, "SNODAS_dates")) {
     stop("'dates' must be processed with 'dates_SNODAS()'.")
   }
 
@@ -283,7 +281,7 @@ unpack_dir_SNODAS <- function(tar_dir = ".", out_dir = "data", rm_tar = FALSE) {
 unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
 
   # Check that 'dates' object is correct class
-  if (!is(dates, "SNODAS_download")) {
+  if (!methods::is(dates, "SNODAS_download")) {
     stop("An object of class 'SNODAS_download' ",
          "must be passed to argument 'dates'. See ?download_SNODAS.")
   }
@@ -297,7 +295,7 @@ unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
   dates$unpacked <- file.path(out_dir, gsub(".tar", "",
                                             basename(dates$download)))
   dates$unpacked[which(!dates$available)] <- NA
-  lapply(na.omit(dates$unpacked), dir.create,
+  lapply(stats::na.omit(dates$unpacked), dir.create,
          showWarnings = FALSE, recursive = TRUE)
   dates$unpack_status <- NA
 
@@ -334,8 +332,7 @@ unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
 #'
 #' Saves as raster already untarred files in SNODAS directory
 #'
-#' @param data_dir `[character = "data"]` Directory where `SNODAS_*` folders are
-#' located
+#' @param dates `[SNODAS_unpacked]` Object returned by `unpack_SNODAS()`
 #' @param out_dir `[character = "data"]` Directory where rasters should be
 #' saved
 #' @param rm_data `[logical = FALSE]` Delete untarred files after saving to
@@ -357,10 +354,10 @@ unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
 #' @returns Returns a `data.frame` of class `TBD` with metadata about each
 #' raster. As a side-effect, it also saves the rasters to disk, with one
 #' file for each date. Each file has 3 layers, which should retain their
-#' names, but are (1) SWE in m [`swe`], (2) Snow Depth in m [`depth`], and (3)
-#' Snow Pack Average Temperature in K [`temp`].
+#' names, but are (1) SWE in m (`swe`), (2) Snow Depth in m (`depth`), and (3)
+#' Snow Pack Average Temperature in K (`temp`).
 #'
-#' @seealso [SNODAS_pc() for the full names and units of each layer]
+#' @seealso [`SNODAS_pc`]`()` for the full names and units of each layer
 #'
 #'
 #' @examples

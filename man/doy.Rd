@@ -6,6 +6,9 @@
 \usage{
 doy(d)
 }
+\arguments{
+\item{d}{A \code{Date} object}
+}
 \description{
 Internal function that calculates day-of-year for a date
 }

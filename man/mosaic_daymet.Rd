@@ -11,7 +11,7 @@ mosaic_daymet(
   format = c("raster", "GTiff"),
   crop = NULL,
   reproject = NULL,
-  method = "ngb",
+  method = "near",
   verbose = TRUE
 )
 }
@@ -26,16 +26,16 @@ retained in the data. Defaults to all days (1:365). See note in Details.}
 \item{format}{\verb{[character = "raster"]} Output format of raster. Either
 \code{"raster"} (.grd) or \code{"GTiff"} (.tif).}
 
-\item{crop}{\verb{[Extent = NULL]} Optional. Extent for cropping Daymet rasters.
+\item{crop}{\verb{[SpatRaster, SpatExtent = NULL]} Optional. Extent for cropping Daymet rasters.
 If \code{NULL} (default), no cropping occurs. \code{reproject} takes priority over
 \code{crop} if both are specified.}
 
-\item{reproject}{\verb{[Raster* = NULL]} Optional. Raster for reprojecting Daymet
+\item{reproject}{\verb{[SpatRaster = NULL]} Optional. Raster for reprojecting Daymet
 rasters. If \code{NULL} (default), no reprojection occurs. \code{reproject} takes
 priority over \code{crop} if both are specified.}
 
-\item{method}{\verb{[character = "ngb"]} Method used to compute values if
-reprojecting raster. Either "ngb" or "bilinear". Ignored if \code{reproject} is
+\item{method}{\verb{[character = "near"]} Method used to compute values if
+reprojecting raster. Either "near" or "bilinear". Ignored if \code{reproject} is
 \code{NULL}.}
 
 \item{verbose}{\verb{[logical = TRUE]} Determines whether the user will be

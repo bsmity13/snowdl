@@ -20,7 +20,7 @@ class_snowdl_dates <- function(x) {
 
 # Check class
 is.snowdl_dates <- function(x) {
-  return(is(x, "snowdl_dates"))
+  return(methods::is(x, "snowdl_dates"))
 }
 
 # Plot
@@ -54,7 +54,7 @@ plot.snowdl_dates <- function(x, y, ...) {
 #' @export
 as_snowdl_dates <- function(x) {
   # Check that 'x' is a 'Date' object
-  if (!(is(x, "Date"))) {
+  if (!(methods::is(x, "Date"))) {
     stop("'x' must be a vector of 'Date' objects")
   }
 
@@ -95,7 +95,7 @@ as_snowdl_dates <- function(x) {
 #' @export
 snowdates_seq <- function(start, end) {
   # Check that 'start' and 'end' are 'Date' objects
-  if (!(is(start, "Date") & is(end, "Date"))) {
+  if (!(methods::is(start, "Date") & methods::is(end, "Date"))) {
     stop("Both 'start' and 'end' should be formatted as 'Date' objects")
   }
 

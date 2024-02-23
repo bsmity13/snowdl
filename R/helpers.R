@@ -16,11 +16,11 @@ crop_or_reproject <- function(r, crop, reproject, method){
   # If reproject is given, then ignore crop
 
   if (is.null(reproject)) {
-    res <- raster::crop(x = r, y = crop, snap = "out")
+    res <- terra::crop(x = r, y = crop, snap = "out")
   } else {
-    res <- raster::projectRaster(from = r,
-                                 to = reproject,
-                                 method = method)
+    res <- terra::project(from = r,
+                          to = reproject,
+                          method = method)
   }
 
   return(res)
@@ -29,6 +29,8 @@ crop_or_reproject <- function(r, crop, reproject, method){
 #' Return day-of-year for a date
 #'
 #' Internal function that calculates day-of-year for a date
+#'
+#' @param d A `Date` object
 #'
 #' @details Meant for internal use.
 #'
@@ -40,6 +42,8 @@ doy <- function(d) {
 #' Return year for a date
 #'
 #' Internal function that calculates year for a date
+#'
+#' @param d A `Date` object
 #'
 #' @details Meant for internal use.
 #'

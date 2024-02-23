@@ -7,17 +7,14 @@
 download_SNODAS(dates, out_dir = ".", overwrite = FALSE)
 }
 \arguments{
+\item{dates}{\verb{[SNODAS_dates]} The object that defines the dates for which to
+download data. See ?dates_SNODAS.}
+
 \item{out_dir}{\verb{[character = "."]} The directory in which to save downloaded
 file.}
 
 \item{overwrite}{\verb{[logical = FALSE]} If data for particular dates exist in
 \code{out_dir}, should it be overwritten?}
-
-\item{date}{\verb{[SNODAS_dates]} The object that defines the dates for which to
-download data. See ?dates_SNODAS.}
-
-\item{masked}{\verb{[logical = TRUE]} Determines whether the downloaded data will
-be masked or unmasked. See details.}
 }
 \value{
 An object of class \code{SNODAS_download} to be passed to

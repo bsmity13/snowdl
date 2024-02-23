@@ -20,4 +20,5 @@ Imports:
     terra,
     R.utils,
     ecmwfr,
-    xfun
+    xfun,
+    methods

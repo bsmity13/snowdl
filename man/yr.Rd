@@ -6,6 +6,9 @@
 \usage{
 yr(d)
 }
+\arguments{
+\item{d}{A \code{Date} object}
+}
 \description{
 Internal function that calculates year for a date
 }

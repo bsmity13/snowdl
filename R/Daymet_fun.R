@@ -88,14 +88,14 @@ get_daymet_swe <- function(year,
 #' @param out_dir `[character = "data"]` Directory to save mosaicked output.
 #' @param format `[character = "raster"]` Output format of raster. Either
 #' `"raster"` (.grd) or `"GTiff"` (.tif).
-#' @param crop `[Extent = NULL]` Optional. Extent for cropping Daymet rasters.
+#' @param crop `[SpatRaster, SpatExtent = NULL]` Optional. Extent for cropping Daymet rasters.
 #' If `NULL` (default), no cropping occurs. `reproject` takes priority over
 #' `crop` if both are specified.
-#' @param reproject `[Raster* = NULL]` Optional. Raster for reprojecting Daymet
+#' @param reproject `[SpatRaster = NULL]` Optional. Raster for reprojecting Daymet
 #' rasters. If `NULL` (default), no reprojection occurs. `reproject` takes
 #' priority over `crop` if both are specified.
-#' @param method `[character = "ngb"]` Method used to compute values if
-#' reprojecting raster. Either "ngb" or "bilinear". Ignored if `reproject` is
+#' @param method `[character = "near"]` Method used to compute values if
+#' reprojecting raster. Either "near" or "bilinear". Ignored if `reproject` is
 #' `NULL`.
 #' @param verbose `[logical = TRUE]` Determines whether the user will be
 #' notified of progress.
@@ -118,7 +118,7 @@ mosaic_daymet <- function(dir,
                           format = c("raster", "GTiff"),
                           crop = NULL,
                           reproject = NULL,
-                          method = "ngb",
+                          method = "near",
                           verbose = TRUE){
 
   # Check if out_dir needs to be created
@@ -128,21 +128,21 @@ mosaic_daymet <- function(dir,
 
   # Check `crop` and `reproject`
   if (!is.null(crop)){
-    if (!(inherits(crop, "Raster") | inherits(crop, "Extent"))) {
-      stop("If 'crop' is not NULL, it must be of class 'Raster*' or 'Extent'.")
+    if (!(inherits(crop, "SpatRaster") | inherits(crop, "SpatExtent"))) {
+      stop("If 'crop' is not NULL, it must be of class 'SpatRaster' or 'SpatExtent'.")
     }
   }
 
   if (!is.null(reproject)){
-    if (!(inherits(reproject, "Raster"))) {
+    if (!(inherits(reproject, "SpatRaster"))) {
       stop("If 'reproject' is not NULL, ",
-      "it must be of class 'Raster*'.")
+      "it must be of class 'SpatRaster'.")
     }
   }
 
   # Check `method`
-  if (!(method %in% c("ngb", "bilinear"))){
-    stop("Argument 'method' must be either 'ngb' or 'bilinear'.")
+  if (!(method %in% c("near", "bilinear"))){
+    stop("Argument 'method' must be either 'near' or 'bilinear'.")
   }
 
   # Files
@@ -169,12 +169,12 @@ mosaic_daymet <- function(dir,
         cat(paste0(" ... Day: ", d, "\n"))
       }
       # Load all
-      rl <- lapply(fy, raster::raster, band = d)
+      rl <- lapply(fy, terra::rast, band = d)
       # Add mosaic arguments
       rl$fun <- mean #Shouldn't matter b/c tiles do not overlap
       rl$na.rm <- TRUE
       # Mosaic
-      m <- do.call(raster::mosaic, rl)
+      m <- do.call(terra::mosaic, rl)
       # Crop or reproject
       if (!is.null(crop) | !is.null(reproject)) {
         m <- crop_or_reproject(r = m,
@@ -191,7 +191,7 @@ mosaic_daymet <- function(dir,
       # Create filename
       fn <- file.path(out_dir, paste0(y, "_", day, "_swe", ext))
       # Save
-      raster::writeRaster(m, fn, format = format[1], overwrite = TRUE)
+      terra::writeRaster(m, fn, format = format[1], overwrite = TRUE)
       # Append fn to return later
       file_names <- c(file_names, fn)
     }

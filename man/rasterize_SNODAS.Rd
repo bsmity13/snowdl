@@ -16,6 +16,8 @@ rasterize_SNODAS(
 )
 }
 \arguments{
+\item{dates}{\verb{[SNODAS_unpacked]} Object returned by \code{unpack_SNODAS()}}
+
 \item{out_dir}{\verb{[character = "data"]} Directory where rasters should be
 saved}
 
@@ -39,16 +41,13 @@ is \code{NULL}.}
 
 \item{verbose}{\verb{[logical = TRUE]} Determines whether the user will be
 notified of progress in the console.}
-
-\item{data_dir}{\verb{[character = "data"]} Directory where \verb{SNODAS_*} folders are
-located}
 }
 \value{
 Returns a \code{data.frame} of class \code{TBD} with metadata about each
 raster. As a side-effect, it also saves the rasters to disk, with one
 file for each date. Each file has 3 layers, which should retain their
-names, but are (1) SWE in m \code{\link{swe}}, (2) Snow Depth in m \code{\link{depth}}, and (3)
-Snow Pack Average Temperature in K \code{\link{temp}}.
+names, but are (1) SWE in m (\code{swe}), (2) Snow Depth in m (\code{depth}), and (3)
+Snow Pack Average Temperature in K (\code{temp}).
 }
 \description{
 Saves as raster already untarred files in SNODAS directory
@@ -77,5 +76,5 @@ res <- rasterize_SNODAS(up, out_dir = dd)
 
 }
 \seealso{
-\link{SNODAS_pc() for the full names and units of each layer}
+\code{\link{SNODAS_pc}}\verb{()} for the full names and units of each layer
 }
