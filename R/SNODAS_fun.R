@@ -405,9 +405,10 @@ rasterize_SNODAS <- function(dates,
   }
 
   if (!is.null(reproject)){
-    if (!(inherits(reproject, "SpatRaster"))) {
+    if (!(inherits(reproject, "SpatRaster") |
+          inherits(reproject, "character"))) {
       stop("If 'reproject' is not NULL, ",
-           "it must be of class 'SpatRaster'.")
+           "it must be of class 'SpatRaster' or 'character'.")
     }
   }
 
