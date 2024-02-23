@@ -145,19 +145,19 @@ download_SNODAS <- function(dates, out_dir = ".", overwrite = FALSE) {
   dates$download <- ifelse(is.na(fn), NA, file.path(out_dir, fn))
 
   # Download
-  dates$status <- NA
+  dates$download_status <- NA
 
   for (i in 1:nrow(dates)) {
     if (!is.na(dates$url[i])) {
       # Is there a file that shouldn't be overwritten?
       if(file.exists(dates$download[i]) & !overwrite) {
-        dates$status[i] <- "exists"
+        dates$download_status[i] <- "exists"
       } else { # The file doesn't exist or should be overwritten
         # Download
         try(res <- utils::download.file(url = dates$url[i],
                                         destfile = dates$download[i],
                                         mode = "wb"))
-        dates$status[i] <- ifelse(res == 0, "success", "fail")
+        dates$download_status[i] <- ifelse(res == 0, "success", "fail")
       }
     } else { # The data are unavailable
 
@@ -299,9 +299,10 @@ unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
   dates$unpacked[which(!dates$available)] <- NA
   lapply(na.omit(dates$unpacked), dir.create,
          showWarnings = FALSE, recursive = TRUE)
+  dates$unpack_status <- NA
 
   # Loop over successfully downloaded tars and unpack
-  for (i in which(dates$status %in% c("success", "unpacked_available"))) {
+  for (i in which(dates$download_status %in% c("success", "exists"))) {
 
     # Tarball and unpacking directory
     tar <- dates$download[i]
@@ -315,9 +316,9 @@ unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
       file.remove(tar)
       # If we remove the tarball, we want the function to know in the future
       # not to try to unpack it.
-      dates$status[i] <- "unpacked_removed"
+      dates$unpack_status[i] <- "unpacked_removed"
     } else {
-      dates$status[i] <- "unpacked_available"
+      dates$unpack_status[i] <- "unpacked_available"
     }
   }
 
@@ -337,38 +338,61 @@ unpack_SNODAS <- function(dates, out_dir = "data", rm_tar = FALSE) {
 #' located
 #' @param out_dir `[character = "data"]` Directory where rasters should be
 #' saved
-#' @param rm_data `[logical = TRUE]` Delete untarred files after saving to
+#' @param rm_data `[logical = FALSE]` Delete untarred files after saving to
 #' raster?
-#' @param format `[character = "raster"]` Output format of raster. Either
-#' `"raster"` (.grd) or `"GTiff"` (.tif).
-#' @param crop `[Extent = NULL]` Optional. Extent for cropping Daymet rasters.
-#' If `NULL` (default), no cropping occurs. `reproject` takes priority over
-#' `crop` if both are specified.
-#' @param reproject `[Raster* = NULL]` Optional. Raster for reprojecting Daymet
-#' rasters. If `NULL` (default), no reprojection occurs. `reproject` takes
+#' @param format `[character = "GTiff"]` Output format of raster. Only `"GTiff"`
+#' (.tif) is currenty supported.
+#' @param crop `[SpatRaster, SpatExtent = NULL]` Optional. Template for cropping
+#' SNODAS rasters. If `NULL` (default), no cropping occurs. `reproject` takes
 #' priority over `crop` if both are specified.
-#' @param method `[character = "ngb"]` Method used to compute values if
-#' reprojecting raster. Either "ngb" or "bilinear". Ignored if `reproject` is
-#' `NULL`.
+#' @param reproject `[SpatRaster = NULL]` Optional. Raster for reprojecting
+#' SNODAS rasters. If `NULL` (default), no reprojection occurs. `reproject`
+#' takes priority over `crop` if both are specified.
+#' @param method `[character = "near"]` Method used to compute values if
+#' reprojecting raster. See ?terra::project for options. Ignored if `reproject`
+#' is `NULL`.
 #' @param verbose `[logical = TRUE]` Determines whether the user will be
-#' notified of progress.
+#' notified of progress in the console.
 #'
-#' @details Note that if this function exits with an error, it will most
-#' likely have already untarred the compressed files that were downloaded.
-#' That will typically cause the function `rasterize_SNODAS()` to fail when
-#' run a second time. This is not a desirable outcome, and it is on my to-do
-#' list to fix this.
+#' @returns Returns a `data.frame` of class `TBD` with metadata about each
+#' raster. As a side-effect, it also saves the rasters to disk, with one
+#' file for each date. Each file has 3 layers, which should retain their
+#' names, but are (1) SWE in m [`swe`], (2) Snow Depth in m [`depth`], and (3)
+#' Snow Pack Average Temperature in K [`temp`].
 #'
-#' More details required. **TBD**
+#' @seealso [SNODAS_pc() for the full names and units of each layer]
+#'
+#'
+#' @examples
+#'
+#' \dontrun{
+#' # Three dates; one is unavailable
+#' dts <- as_snowdl_dates(as.Date(c("2000-02-02", "2010-02-02", "2020-02-02",
+#'                                   "2017-03-30")))
+#'
+#' # Process dates
+#' SNODAS_dts <- dates_SNODAS(dts)
+#'
+#' # Download to temporary directory
+#' dd <- tempdir()
+#' dl <- download_SNODAS(SNODAS_dts, out_dir = dd)
+#'
+#' # Unpack
+#' up <- unpack_SNODAS(dl, out_dir = dd)
+#'
+#' # Rasterize
+#' res <- rasterize_SNODAS(up, out_dir = dd)
+#'
+#' }
 #'
 #' @export
-rasterize_SNODAS <- function(data_dir = "data",
+rasterize_SNODAS <- function(dates,
                              out_dir = "data/geo",
-                             rm_data = TRUE,
-                             format = c("raster", "GTiff"),
+                             rm_data = FALSE,
+                             format = "GTiff",
                              crop = NULL,
                              reproject = NULL,
-                             method = "ngb",
+                             method = "near",
                              verbose = TRUE) {
 
   # Create out_dir if necessary
@@ -378,144 +402,174 @@ rasterize_SNODAS <- function(data_dir = "data",
 
   # Check `crop` and `reproject`
   if (!is.null(crop)){
-    if (!(inherits(crop, "Raster") | inherits(crop, "Extent"))) {
-      stop("If 'crop' is not NULL, it must be of class 'Raster*' or 'Extent'.")
+    if (!(inherits(crop, "SpatRaster") | inherits(crop, "SpatExtent"))) {
+      stop("If 'crop' is not NULL, it must be of class 'SpatRaster' or 'SpatExtent'.")
     }
   }
 
   if (!is.null(reproject)){
-    if (!(inherits(reproject, "Raster"))) {
+    if (!(inherits(reproject, "SpatRaster"))) {
       stop("If 'reproject' is not NULL, ",
-           "it must be of class 'Raster*'.")
+           "it must be of class 'SpatRaster'.")
     }
   }
 
   # Check `method`
-  if (!(method %in% c("ngb", "bilinear"))) {
+  if (!(method %in% c("near", "bilinear", "cubic", "cubicspline", "lanczos"))) {
     stop("Argument 'method' must be either 'ngb' or 'bilinear'.")
   }
 
   # Check file type
-  if (!(format %in% c("raster", "GTiff"))) {
-    stop("Argument 'format' must be either 'raster' or 'GTiff'.")
+  if (!(format %in% c("GTiff"))) {
+    stop("Argument 'format' must be 'GTiff' (others may be implemented soon).")
   }
 
-  if (verbose) {
-    cat("Extracting *.gz files ... \n")
-  }
+  # Get product codes
+  PC <- SNODAS_pc()
 
-  # Get SWE files in all directories
-  swe.txt.gz <- list.files(data_dir,
-                           pattern = utils::glob2rx('*ssmv11034tS*.txt.gz'),
-                           full.names = TRUE,
-                           recursive = TRUE)
-  swe.dat.gz <- gsub(".txt.", ".dat.", swe.txt.gz, fixed = TRUE)
-  # Unzip (returns unzipped filenames)
-  swe.txt <- unlist(lapply(swe.txt.gz, function(x) {
-    R.utils::decompressFile.default(x,
-                                    ext = "gz",
-                                    FUN = gzfile,
-                                    overwrite = TRUE,
-                                    remove = FALSE)
-  }))
-  swe.dat <- unlist(lapply(swe.dat.gz, function(x) {
-    R.utils::decompressFile.default(x,
-                                    ext = "gz",
-                                    FUN = gzfile,
-                                    overwrite = TRUE,
-                                    remove = FALSE)
-  }))
+  # Initialize 'raster' column
+  dates$raster <- NA
 
-  # Get snow depth files in all directories
-  dep.txt.gz <- list.files(data_dir,
-                           pattern = utils::glob2rx('*ssmv11036tS*.txt.gz'),
-                           full.names = TRUE,
-                           recursive = TRUE)
-  dep.dat.gz <- gsub(".txt.", ".dat.", dep.txt.gz, fixed = TRUE)
-  # Unzip (returns unzipped filenames)
-  dep.txt <- unlist(lapply(dep.txt.gz, function(x) {
-    R.utils::decompressFile.default(x,
-                                    ext = "gz",
-                                    FUN = gzfile,
-                                    overwrite = TRUE,
-                                    remove = FALSE)
-  }))
-  dep.dat <- unlist(lapply(dep.dat.gz, function(x) {
-    R.utils::decompressFile.default(x,
-                                    ext = "gz",
-                                    FUN = gzfile,
-                                    overwrite = TRUE,
-                                    remove = FALSE)
-  }))
+  # Loop over rows of 'dates' for which the file has been unpacked
+  for (i in which(!is.na(dates$unpack_status))) {
 
-  # Extract date string from filenames
-  ds <- substr(x = basename(swe.txt), start = 28, stop = 35)
-
-  # Initialize output filenames
-  ffn <- character()
-
-  if (verbose) {
-    cat("Saving rasters: \n")
-  }
-
-  # Loop through each date, load SWE and depth rasters, (crop), write, (delete)
-  for (i in 1:length(ds)) {
-    # Note: there is an apparent bug in these files from
-    # 2017-03-23 to 2017-04-03 where the header file has
-    # an incorrect version and GDAL will not recognize it.
-    problem_ds <- seq.Date(as.Date("2017-03-23"),
-                           as.Date("2017-04-03"),
-                           by = "1 day")
-    if (as.Date(ds[i], format = "%Y%m%d") %in% problem_ds) {
-      # Fix swe
-      xfun::gsub_file(file = swe.txt[i],
-                      pattern = "NOHRSC GIS/RS raster file v1.0",
-                      replacement = "NOHRSC GIS/RS raster file v1.1",
-                      fixed = TRUE)
-      # Fix depth
-      xfun::gsub_file(file = dep.txt[i],
-                      pattern = "NOHRSC GIS/RS raster file v1.0",
-                      replacement = "NOHRSC GIS/RS raster file v1.1",
-                      fixed = TRUE)
-    }
     if (verbose) {
-      cat("    ", as.character(as.Date(ds[i], format = "%Y%m%d")), "\n")
+      # How many rows?
+      rws <- sum(!is.na(dates$unpack_status))
+      # Which one?
+      ii <- which(i == which(!is.na(dates$unpack_status)))
+      cat("Processing raster", ii, "of", rws, " \n")
+      cat(" ... loading data \n")
     }
-    # Load both layers
-    r <- raster::stack(swe.txt[i], dep.txt[i])
-    # Rename
-    names(r) <- c("SWE", "depth")
+
+    # Loop over product codes in SNODAS data
+    # Store each as an element of a list
+    r <- list()
+    for (j in 1:nrow(PC)) {
+      pc <- PC$pc[j]
+      nm <- PC$parm[j]
+      sf <- PC$scale_factor[j]
+
+      # Path to parameter files
+      p.txt.gz <- list.files(dates$unpacked[i],
+                             pattern = utils::glob2rx(paste0("*", pc, "*.txt.gz")),
+                             full.names = TRUE,
+                             recursive = TRUE)
+      p.dat.gz <- list.files(dates$unpacked[i],
+                             pattern = utils::glob2rx(paste0("*", pc, "*.dat.gz")),
+                             full.names = TRUE,
+                             recursive = TRUE)
+      # Unzip (returns path to unzipped files)
+      p.txt <- R.utils::decompressFile.default(p.txt.gz,
+                                               ext = "gz",
+                                               FUN = gzfile,
+                                               overwrite = TRUE,
+                                               remove = FALSE)
+      p.dat <- R.utils::decompressFile.default(p.dat.gz,
+                                               ext = "gz",
+                                               FUN = gzfile,
+                                               overwrite = TRUE,
+                                               remove = FALSE)
+
+      # Note: there is an apparent bug in these files from
+      # 2017-03-23 to 2017-04-03 where the header file has
+      # an incorrect version and GDAL will not recognize it.
+      problem_ds <- seq.Date(as.Date("2017-03-23"),
+                             as.Date("2017-04-03"),
+                             by = "1 day")
+      if (dates$date[i] %in% problem_ds) {
+        # Fix header
+        xfun::gsub_file(file = p.txt,
+                        pattern = "NOHRSC GIS/RS raster file v1.0",
+                        replacement = "NOHRSC GIS/RS raster file v1.1",
+                        fixed = TRUE)
+      }
+
+      # Read raster
+      r[[j]] <- terra::rast(p.txt)
+      names(r[[j]]) <- nm
+
+      # Apply scale factor
+      r[[j]] <- r[[j]]/sf
+    }
+
+    # Combine the list into a single raster
+    rr <- terra::rast(r)
+
     # Crop or reproject
     if (!is.null(crop) | !is.null(reproject)) {
-      r <- crop_or_reproject(r = r,
-                             crop = crop,
-                             reproject = reproject,
-                             method = method)
+
+      if (verbose) {
+        cat(" ... cropping or reprojecting \n")
+      }
+
+      rr <- crop_or_reproject(r = rr,
+                              crop = crop,
+                              reproject = reproject,
+                              method = method)
+    }
+
+    if (verbose) {
+      cat(" ... saving \n")
     }
     # Write
     # Base filename
-    fn <- switch(format[1],
-                 raster = paste0("SNODAS_", ds[i], ".grd"),
-                 GTiff = paste0("SNODAS_", ds[i], ".tif"))
+    if (format == "GTiff") {
+      fn <- paste0(basename(dates$unpacked[i]), ".tif")
+    }
     # Full filename
-    ffn[i] <- file.path(out_dir, fn)
-    raster::writeRaster(r, filename = ffn[i],
-                        format = format[1],
-                        overwrite = TRUE)
+    dates$raster[i] <- file.path(out_dir, fn)
+    terra::writeRaster(rr,
+                       filename = dates$raster[i],
+                       filetype = format,
+                       overwrite = TRUE)
     # Delete
     if (rm_data) {
+      if (verbose) {
+        cat(" ... removing data \n")
+      }
       # Folder containing data
-      # Get it by removing "/filename.txt"
-      f <- gsub(paste0("/", basename(swe.txt[i])), "", swe.txt[i])
+      f <- dates$unpacked[i]
       # Delete
       unlink(f, recursive = TRUE)
+      # Update status
+      dates$unpack_status[i] <- "unpacked_deleted"
     }
+
   }
+
 
   if (verbose) {
     cat("Done!\n")
   }
 
-  # Return full filenames at the end
-  return(ffn)
+  # Update the class of 'dates
+  class(dates) <- c("SNODAS_rasters", class(dates))
+  return(dates)
+}
+
+# SNODAS product codes ----
+#' Display SNODAS Product Codes
+#'
+#' Displays state variables available in SNODAS data
+#'
+#' @seealso See Table 1 of SNODAS user guide at
+#' https://nsidc.org/data/g02158/versions/1
+#'
+#' @examples
+#' SNODAS_pc()
+#'
+#'
+#' @export
+SNODAS_pc <- function() {
+  # Display product codes in SNODAS data
+  # See Table 1 of user guide at https://nsidc.org/data/g02158/versions/1
+
+  # Reporting state variables only
+  pc <- data.frame(pc = c(1034, 1036, 1038),
+                   parameter = c("SWE", "Snow Depth", "Snow Pack Average Temperature"),
+                   parm = c("swe", "depth", "temp"),
+                   units = c("m", "m", "K"),
+                   scale_factor = c(1000, 1000, 1))
+  return(pc)
 }

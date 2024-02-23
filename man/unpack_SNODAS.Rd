@@ -25,18 +25,18 @@ This is the preferred unpacking function for v1.0.0.
 \examples{
 \dontrun{
 
-# Just two dates
-dts <- as_snowdl_dates(as.Date("2020-02-02") + 1:2)
+# Three dates; one is unavailable
+dts <- as_snowdl_dates(as.Date(c("2000-02-02", "2010-02-02", "2020-02-02")))
 
 # Process dates
 SNODAS_dts <- dates_SNODAS(dts)
 
 # Download to temporary directory
 dd <- tempdir()
-res <- download_SNODAS(SNODAS_dts, out_dir = dd)
+dl <- download_SNODAS(SNODAS_dts, out_dir = dd)
 
 # Unpack
-unpack_SNODAS(res)
+res <- unpack_SNODAS(dl, out_dir = dd)
 
 }
 }

@@ -5,53 +5,77 @@
 \title{Rasterize SNODAS files}
 \usage{
 rasterize_SNODAS(
-  data_dir = "data",
+  dates,
   out_dir = "data/geo",
-  rm_data = TRUE,
-  format = c("raster", "GTiff"),
+  rm_data = FALSE,
+  format = "GTiff",
   crop = NULL,
   reproject = NULL,
-  method = "ngb",
+  method = "near",
   verbose = TRUE
 )
 }
 \arguments{
-\item{data_dir}{\verb{[character = "data"]} Directory where \verb{SNODAS_*} folders are
-located}
-
 \item{out_dir}{\verb{[character = "data"]} Directory where rasters should be
 saved}
 
-\item{rm_data}{\verb{[logical = TRUE]} Delete untarred files after saving to
+\item{rm_data}{\verb{[logical = FALSE]} Delete untarred files after saving to
 raster?}
 
-\item{format}{\verb{[character = "raster"]} Output format of raster. Either
-\code{"raster"} (.grd) or \code{"GTiff"} (.tif).}
+\item{format}{\verb{[character = "GTiff"]} Output format of raster. Only \code{"GTiff"}
+(.tif) is currenty supported.}
 
-\item{crop}{\verb{[Extent = NULL]} Optional. Extent for cropping Daymet rasters.
-If \code{NULL} (default), no cropping occurs. \code{reproject} takes priority over
-\code{crop} if both are specified.}
-
-\item{reproject}{\verb{[Raster* = NULL]} Optional. Raster for reprojecting Daymet
-rasters. If \code{NULL} (default), no reprojection occurs. \code{reproject} takes
+\item{crop}{\verb{[SpatRaster, SpatExtent = NULL]} Optional. Template for cropping
+SNODAS rasters. If \code{NULL} (default), no cropping occurs. \code{reproject} takes
 priority over \code{crop} if both are specified.}
 
-\item{method}{\verb{[character = "ngb"]} Method used to compute values if
-reprojecting raster. Either "ngb" or "bilinear". Ignored if \code{reproject} is
-\code{NULL}.}
+\item{reproject}{\verb{[SpatRaster = NULL]} Optional. Raster for reprojecting
+SNODAS rasters. If \code{NULL} (default), no reprojection occurs. \code{reproject}
+takes priority over \code{crop} if both are specified.}
+
+\item{method}{\verb{[character = "near"]} Method used to compute values if
+reprojecting raster. See ?terra::project for options. Ignored if \code{reproject}
+is \code{NULL}.}
 
 \item{verbose}{\verb{[logical = TRUE]} Determines whether the user will be
-notified of progress.}
+notified of progress in the console.}
+
+\item{data_dir}{\verb{[character = "data"]} Directory where \verb{SNODAS_*} folders are
+located}
+}
+\value{
+Returns a \code{data.frame} of class \code{TBD} with metadata about each
+raster. As a side-effect, it also saves the rasters to disk, with one
+file for each date. Each file has 3 layers, which should retain their
+names, but are (1) SWE in m \code{\link{swe}}, (2) Snow Depth in m \code{\link{depth}}, and (3)
+Snow Pack Average Temperature in K \code{\link{temp}}.
 }
 \description{
 Saves as raster already untarred files in SNODAS directory
 }
-\details{
-Note that if this function exits with an error, it will most
-likely have already untarred the compressed files that were downloaded.
-That will typically cause the function \code{rasterize_SNODAS()} to fail when
-run a second time. This is not a desirable outcome, and it is on my to-do
-list to fix this.
+\examples{
 
-More details required. \strong{TBD}
+\dontrun{
+# Three dates; one is unavailable
+dts <- as_snowdl_dates(as.Date(c("2000-02-02", "2010-02-02", "2020-02-02",
+                                  "2017-03-30")))
+
+# Process dates
+SNODAS_dts <- dates_SNODAS(dts)
+
+# Download to temporary directory
+dd <- tempdir()
+dl <- download_SNODAS(SNODAS_dts, out_dir = dd)
+
+# Unpack
+up <- unpack_SNODAS(dl, out_dir = dd)
+
+# Rasterize
+res <- rasterize_SNODAS(up, out_dir = dd)
+
+}
+
+}
+\seealso{
+\link{SNODAS_pc() for the full names and units of each layer}
 }
